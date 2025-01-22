@@ -104,6 +104,39 @@ echo YT-DLP Youtube Downloader
 echo.
 SET /P URL=Enter URL: 
 echo.
+GOTO YTDLCP
+
+:YTDLCP
+cls
+echo.
+echo YT-DLP Youtube Thumbnail Downloader 
+echo.
+echo Enter URL: %URL%
+echo.
+SET /P E=Embed Thumbnail to Video? [y/n]: 
+echo.
+IF %E%==y GOTO YTDLC1
+IF %E%==n GOTO YTDLC2
+echo.
+echo Error: Invalid Input
+echo.
+echo [Press Any Key To Continue]
+pause > nul
+GOTO YTDLCP 
+
+:YTDLC1
+yt-dlp.exe --list-formats "%URL%"
+echo.
+SET /P F=Desired Output Format: 
+echo.
+IF not exist "%~dp0\Downloads" mkdir %~dp0\Downloads
+yt-dlp.exe -f %F% --embed-thumbnail --ffmpeg-location "%~dp0\ffmpeg\bin" --paths "%~dp0\Downloads" "%URL%"
+echo.
+echo Returning to Main Menu...
+timeout /t 3 /nobreak > nul
+GOTO Menu
+
+:YTDLC2
 yt-dlp.exe --list-formats "%URL%"
 echo.
 SET /P F=Desired Output Format: 
