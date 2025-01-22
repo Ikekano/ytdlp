@@ -35,7 +35,7 @@ echo.
 IF not exist "%~dp0\Downloads" mkdir %~dp0\Downloads
 yt-dlp.exe --remux-video "mp4" --embed-thumbnail --ffmpeg-location "%~dp0\ffmpeg\bin" --paths "%~dp0\Downloads" "%URL%" 
 ::--paths "%~dp0../Downloads"
-timeout /t 10 /nobreak
+timeout /t 5 /nobreak
 GOTO Menu
 
 :YTDL3
