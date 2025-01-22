@@ -56,13 +56,42 @@ echo YT-DLP Youtube Downloader (MP3)
 echo.
 SET /P URL=Enter URL: 
 echo.
+GOTO YTDL3P
+
+:YTDL3P
+cls
+echo.
+echo YT-DLP Youtube Downloader (MP3)
+echo.
+echo Enter URL: %URL% 
+echo.
 SET /P Q=Desired Audio Quality (0 Best - 10 Worst): 
+ 
+:: Check if the input is numeric and in the range 0-10
+set "valid=1"
+for /f "delims=" %%A in ("%Q%") do (
+    set "valid=0"
+    for /f "delims=0123456789" %%B in ("%%A") do set "valid=1"
+)
+
+if "!valid!"=="0" if "!Q!" geq "0" if "!Q!" leq "10" (
+    GOTO YTDL3C
+) else (
+    echo.
+	echo Error: Invalid Input
+	echo.
+	echo [Press Any Key To Continue]
+	pause > nul
+    GOTO YTDL3P
+)
+
+:YTDL3C
 echo.
 IF not exist "%~dp0\Downloads" mkdir %~dp0\Downloads
-yt-dlp.exe -x --audio-format "mp3" --embed-thumbnail --audio-quality %Q% --ffmpeg-location "%~dp0\ffmpeg\bin" --paths "%~dp0\Downloads" "%URL%"
+yt-dlp.exe -x --audio-format "mp3" --audio-quality %Q% --ffmpeg-location "%~dp0\ffmpeg\bin" --paths "%~dp0\Downloads" "%URL%"
 echo.
 echo Returning to Main Menu...
-timeout /t 5 /nobreak > nul
+timeout /t 3 /nobreak > nul
 GOTO Menu
 
 ::
@@ -80,10 +109,10 @@ echo.
 SET /P F=Desired Output Format: 
 echo.
 IF not exist "%~dp0\Downloads" mkdir %~dp0\Downloads
-yt-dlp.exe -f %F% --embed-thumbnail --ffmpeg-location "%~dp0\ffmpeg\bin" --paths "%~dp0\Downloads" "%URL%"
+yt-dlp.exe -f %F% --ffmpeg-location "%~dp0\ffmpeg\bin" --paths "%~dp0\Downloads" "%URL%"
 echo.
 echo Returning to Main Menu...
-timeout /t 5 /nobreak > nul
+timeout /t 3 /nobreak > nul
 GOTO Menu
 
 ::
