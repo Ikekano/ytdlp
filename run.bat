@@ -32,6 +32,7 @@ echo YT-DLP Youtube Downloader (MP4)
 echo.
 SET /P URL=Enter URL: 
 echo.
+IF not exist "%~dp0\Downloads" mkdir %~dp0\Downloads
 yt-dlp.exe --remux-video "mp4" --embed-thumbnail --ffmpeg-location "%~dp0\ffmpeg\bin" --paths "%~dp0\Downloads" "%URL%" 
 ::--paths "%~dp0../Downloads"
 timeout /t 10 /nobreak
@@ -46,6 +47,7 @@ SET /P URL=Enter URL:
 echo.
 SET /P Q=Desired Audio Quality (0 Best - 10 Worst): 
 echo.
+IF not exist "%~dp0\Downloads" mkdir %~dp0\Downloads
 yt-dlp.exe -x --audio-format "mp3" --embed-thumbnail --audio-quality %Q% --ffmpeg-location "%~dp0\ffmpeg\bin" --paths "%~dp0\Downloads" "%URL%"
 timeout /t 5 /nobreak
 GOTO Menu
@@ -61,6 +63,7 @@ yt-dlp.exe --list-formats "%URL%"
 echo.
 SET /P F=Desired Output Format: 
 echo.
+IF not exist "%~dp0\Downloads" mkdir %~dp0\Downloads
 yt-dlp.exe -f %F% --embed-thumbnail --ffmpeg-location "%~dp0\ffmpeg\bin" --paths "%~dp0\Downloads" "%URL%"
 timeout /t 5 /nobreak
 GOTO Menu
@@ -72,6 +75,7 @@ echo YT-DLP Youtube Thumbnail Downloader
 echo.
 SET /P URL=Enter URL: 
 echo.
+IF not exist "%~dp0\Downloads" mkdir %~dp0\Downloads
 yt-dlp.exe --skip-download --list-thumbnails --convert-thumbnails "png" --write-thumbnail --ffmpeg-location "%~dp0\ffmpeg\bin" --paths "%~dp0\Downloads" "%URL%"
 echo.
 echo [Press Any Key To Continue]
