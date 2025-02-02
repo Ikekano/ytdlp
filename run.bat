@@ -137,7 +137,7 @@ echo.
 SET /P M=Select Option: 
 IF /I %M%==1 GOTO TWDL4
 IF /I %M%==2 GOTO TWDLC
-IF /I %M%==3 GOTO TWDLI
+IF /I %M%==3 GOTO TWMenu
 IF /I %M%==4 GOTO Menu
 IF /I %M%==5 GOTO EOF
 
