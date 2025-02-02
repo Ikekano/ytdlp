@@ -124,8 +124,13 @@ void RunDownloadCommand(const std::string& link, HWND hStatus) {
 
     if (CreateProcess(NULL, (LPSTR)command.c_str(), NULL, NULL, FALSE, creationFlags, NULL, NULL, &si, &pi)) {
         CloseHandle(pi.hThread);
+        SetStatusMessage(hStatus, "Downloading..."); // Default 5s timeout
+
+        // Wait for the process to finish
+        WaitForSingleObject(pi.hProcess, INFINITE);
         CloseHandle(pi.hProcess);
-        SetStatusMessage(hStatus, "Download started...");
+
+        SetStatusMessage(hStatus, "Download Completed!");
     } else {
         SetStatusMessage(hStatus, "Error: Failed to start download.");
     }
