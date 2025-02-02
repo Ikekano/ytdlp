@@ -1,12 +1,20 @@
 #include <windows.h>
 #include <string>
+#include <fstream>
+#include <sstream>
 
 #define ID_TEXTBOX 1
 #define ID_BUTTON 2
 
-// Function prototype
+// Function prototypes
 LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
 void RunDownloadCommand(const std::string& link);
+void ReadConfig(std::string &audioQuality, std::string &downloadPath, bool &hidePowerShell);
+
+// Global config variables
+std::string configAudioQuality = "";
+std::string configDownloadPath = "";
+bool configHidePowerShell = true; // Default to hidden
 
 // Entry point for Windows GUI application
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
@@ -16,6 +24,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     // Hide the console window
     FreeConsole();
+
+    // Read config file
+    ReadConfig(configAudioQuality, configDownloadPath, configHidePowerShell);
 
     // Define window properties
     wc.hInstance = hInstance;
@@ -44,23 +55,76 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     return msg.wParam;
 }
 
-// Function to execute the PowerShell command silently
+// Function to read configuration file
+void ReadConfig(std::string &audioQuality, std::string &downloadPath, bool &hidePowerShell) {
+    std::ifstream configFile("ytmp3-config.ini");
+    if (!configFile) return; // If file doesn't exist, use defaults
+
+    std::string line;
+    while (std::getline(configFile, line)) {
+        if (line.empty() || line[0] == ';') continue; // Ignore comments & empty lines
+
+        size_t pos = line.find('=');
+        if (pos == std::string::npos) continue;
+
+        std::string key = line.substr(0, pos);
+        std::string value = line.substr(pos + 1);
+
+        // Trim whitespace
+        key.erase(0, key.find_first_not_of(" \t"));
+        key.erase(key.find_last_not_of(" \t") + 1);
+        value.erase(0, value.find_first_not_of(" \t"));
+        value.erase(value.find_last_not_of(" \t") + 1);
+
+        if (key == "quality" && !value.empty()) {
+            long q = strtol(value.c_str(), NULL, 10); // Use strtol instead of stoi
+            if (q >= 0 && q <= 10) {
+                std::ostringstream oss;
+                oss << "--audio-quality " << q;
+                audioQuality = oss.str();
+            }
+        } else if (key == "downloads" && !value.empty()) {
+            downloadPath = value;
+        } else if (key == "hidepowershell") {
+            if (value == "true") hidePowerShell = true;
+            else if (value == "false") hidePowerShell = false;
+        }
+    }
+}
+
+// Function to execute the PowerShell command with optional visibility
 void RunDownloadCommand(const std::string& link) {
-    std::string command = "powershell -WindowStyle Hidden -Command \""
-        "IF (!(Test-Path 'Downloads')) { New-Item -ItemType Directory -Path 'Downloads' }; "
-        "./yt-dlp.exe -x -q --audio-format 'mp3' --ffmpeg-location './ffmpeg/bin' --paths './Downloads' '" + link + "'\"";
+    std::string command = "powershell -Command \"";
+
+    // Handle download path
+    if (configDownloadPath.empty()) {
+        command += "IF (!(Test-Path 'Downloads')) { New-Item -ItemType Directory -Path 'Downloads' }; ";
+        command += "./yt-dlp.exe -x --audio-format 'mp3' --ffmpeg-location './ffmpeg/bin' --paths './Downloads' ";
+    } else {
+        command += "./yt-dlp.exe -x --audio-format 'mp3' --ffmpeg-location './ffmpeg/bin' --paths '" + configDownloadPath + "' ";
+    }
+
+    // Handle audio quality
+    if (!configAudioQuality.empty()) {
+        command += configAudioQuality + " ";
+    }
+
+    command += "'" + link + "'\"";
 
     STARTUPINFO si = { sizeof(STARTUPINFO) };
     PROCESS_INFORMATION pi;
     
     si.dwFlags = STARTF_USESHOWWINDOW;
-    si.wShowWindow = SW_HIDE;  // Hide the command window
+    si.wShowWindow = configHidePowerShell ? SW_HIDE : SW_SHOWDEFAULT;
 
-    if (CreateProcess(NULL, (LPSTR)command.c_str(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
+    DWORD creationFlags = configHidePowerShell ? CREATE_NO_WINDOW : 0; // Hide or show PowerShell
+
+    if (CreateProcess(NULL, (LPSTR)command.c_str(), NULL, NULL, FALSE, creationFlags, NULL, NULL, &si, &pi)) {
         CloseHandle(pi.hThread);
         CloseHandle(pi.hProcess);
     }
 }
+
 
 // Window Procedure: Handles GUI events
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -92,6 +156,7 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 
                 if (strlen(link) > 0) {
                     RunDownloadCommand(link);
+                    MessageBox(hwnd, "Download started!", "Success", MB_OK);
                 } else {
                     MessageBox(hwnd, "Please enter a valid YouTube link.", "Error", MB_OK | MB_ICONERROR);
                 }
