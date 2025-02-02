@@ -2,14 +2,17 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <thread>
 
 #define ID_TEXTBOX 1
 #define ID_BUTTON 2
+#define ID_STATUS 3
 
 // Function prototypes
 LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
-void RunDownloadCommand(const std::string& link);
+void RunDownloadCommand(const std::string& link, HWND hStatus);
 void ReadConfig(std::string &audioQuality, std::string &downloadPath, bool &hidePowerShell);
+void SetStatusMessage(HWND hStatus, const std::string &message);
 
 // Global config variables
 std::string configAudioQuality = "";
@@ -39,7 +42,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     // Create main window
     hwnd = CreateWindow("YouTubeMP3Downloader", "YouTube MP3 Downloader", WS_OVERLAPPEDWINDOW,
-                        CW_USEDEFAULT, CW_USEDEFAULT, 500, 200, NULL, NULL, hInstance, NULL);
+                        CW_USEDEFAULT, CW_USEDEFAULT, 500, 250, NULL, NULL, hInstance, NULL);
 
     if (!hwnd) return 0;
 
@@ -93,7 +96,7 @@ void ReadConfig(std::string &audioQuality, std::string &downloadPath, bool &hide
 }
 
 // Function to execute the PowerShell command with optional visibility
-void RunDownloadCommand(const std::string& link) {
+void RunDownloadCommand(const std::string& link, HWND hStatus) {
     std::string command = "powershell -Command \"";
 
     // Handle download path
@@ -122,31 +125,47 @@ void RunDownloadCommand(const std::string& link) {
     if (CreateProcess(NULL, (LPSTR)command.c_str(), NULL, NULL, FALSE, creationFlags, NULL, NULL, &si, &pi)) {
         CloseHandle(pi.hThread);
         CloseHandle(pi.hProcess);
+        SetStatusMessage(hStatus, "Download started...");
+    } else {
+        SetStatusMessage(hStatus, "Error: Failed to start download.");
     }
 }
 
+// Function to set status message and auto-clear after 5 seconds
+void SetStatusMessage(HWND hStatus, const std::string &message) {
+    SetWindowText(hStatus, message.c_str());
+
+    std::thread([hStatus]() {
+        Sleep(5000); // Wait 5 seconds
+        SetWindowText(hStatus, ""); // Clear message
+    }).detach();
+}
 
 // Window Procedure: Handles GUI events
 LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    static HWND hTextBox, hButton, hTitle;
+    static HWND hTextBox, hButton, hTitle, hStatus;
 
     switch (msg) {
         case WM_CREATE:
             // Title label (centered at the top)
             hTitle = CreateWindow("STATIC", "YouTube MP3 Downloader", WS_VISIBLE | WS_CHILD | SS_CENTER,
-                                  150, 10, 200, 20, hwnd, NULL, NULL, NULL);
+                                  100, 10, 300, 20, hwnd, NULL, NULL, NULL);
+
+            // Status message (between title and input)
+            hStatus = CreateWindow("STATIC", "", WS_VISIBLE | WS_CHILD | SS_CENTER,
+                                   100, 60, 300, 40, hwnd, (HMENU)ID_STATUS, NULL, NULL);
 
             // Label: "YouTube Link:"
             CreateWindow("STATIC", "YouTube Link:", WS_VISIBLE | WS_CHILD,
-                         20, 100, 100, 20, hwnd, NULL, NULL, NULL);
+                         20, 145, 100, 20, hwnd, NULL, NULL, NULL);
 
             // Text box for entering the YouTube link
             hTextBox = CreateWindow("EDIT", "", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
-                                    120, 100, 250, 20, hwnd, (HMENU)ID_TEXTBOX, NULL, NULL);
+                                    120, 145, 250, 20, hwnd, (HMENU)ID_TEXTBOX, NULL, NULL);
 
             // Download button
             hButton = CreateWindow("BUTTON", "Download", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-                                   380, 98, 80, 25, hwnd, (HMENU)ID_BUTTON, NULL, NULL);
+                                   380, 144, 80, 25, hwnd, (HMENU)ID_BUTTON, NULL, NULL);
             break;
 
         case WM_COMMAND:
@@ -155,10 +174,9 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
                 GetWindowText(hTextBox, link, sizeof(link));
 
                 if (strlen(link) > 0) {
-                    RunDownloadCommand(link);
-                    MessageBox(hwnd, "Download started!", "Success", MB_OK);
+                    RunDownloadCommand(link, hStatus);
                 } else {
-                    MessageBox(hwnd, "Please enter a valid YouTube link.", "Error", MB_OK | MB_ICONERROR);
+                    SetStatusMessage(hStatus, "Please enter a valid YouTube link.");
                 }
             }
             break;
@@ -169,3 +187,4 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
     }
     return DefWindowProc(hwnd, msg, wParam, lParam);
 }
+
