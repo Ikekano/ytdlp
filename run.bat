@@ -9,16 +9,17 @@ echo.
 echo YT-DLP Downloader 
 echo.
 echo 1. Download From Youtube
-echo 2. Download From Twitter (WIP will Exit)
+echo 2. Download From Twitter/X
 echo 3. Download From Panopto
-echo 4. Exit 
+echo 4. Version Info
+echo 5. Exit 
 echo.
 SET /P M=Select Option: 
 IF /I %M%==1 GOTO YTMenu
-::IF /I %M%==2 GOTO TWMenu
-IF /I %M%==2 GOTO EOF
+IF /I %M%==2 GOTO TWMenu
 IF /I %M%==3 GOTO PTMenu
-IF /I %M%==4 GOTO EOF
+IF /I %M%==4 GOTO Info
+IF /I %M%==5 GOTO EOF
 
 echo.
 echo Error: Invalid Input
@@ -27,6 +28,37 @@ echo [Press Any Key To Continue]
 pause > nul
 GOTO Menu
 
+::
+::		Version Info
+::
+:Info
+cls
+echo.
+echo YT-DLP Version Information
+echo.
+yt-dlp.exe --version
+echo.
+SET /P Update=Check for Update and Download Newest Version? [y/n]: 
+echo.
+IF %Update%==y GOTO IVI1
+IF %Update%==n GOTO IVI2
+echo.
+echo Error: Invalid Input
+echo.
+echo [Press Any Key To Continue]
+pause > nul
+GOTO Info
+
+:IVI1
+yt-dlp.exe -update
+echo Returning to Main Menu...
+timeout /t 3 /nobreak > nul
+GOTO Menu
+
+:IVI2
+echo Returning to Main Menu...
+timeout /t 3 /nobreak > nul
+GOTO Menu
 
 ::
 ::		Main Panopto Menu
@@ -83,6 +115,96 @@ timeout /t 3 /nobreak > nul
 GOTO PTMenu
 
 ::
+::		Main Twitter/X Menu
+::
+:TWMenu
+cls
+echo.
+echo YT-DLP Twitter/X Downloader 
+echo.
+echo 1. Download Video (MP4)
+echo 2. Download Video in Specified Format
+echo 3. Download Image (WIP)
+echo 4. Exit 
+echo.
+SET /P M=Select Option: 
+IF /I %M%==1 GOTO TWDL4
+IF /I %M%==2 GOTO TWDLC
+IF /I %M%==3 GOTO TWDLI
+IF /I %M%==4 GOTO EOF
+
+echo.
+echo Error: Invalid Input
+echo.
+echo [Press Any Key To Continue]
+pause > nul
+GOTO TWMenu
+
+::
+:: 		Download Twitter/X MP4
+::
+:TWDL4
+cls
+echo.
+echo YT-DLP Twitter/X Downloader (MP4)
+echo.
+SET /P URL=Enter URL: 
+echo.
+IF not exist "%~dp0\Downloads" mkdir %~dp0\Downloads
+yt-dlp.exe --remux-video "mp4" --embed-thumbnail --ffmpeg-location "%~dp0\ffmpeg\bin" --paths "%~dp0\Downloads" "%URL%" 
+echo.
+echo Returning to Main Menu...
+timeout /t 5 /nobreak > nul
+GOTO TWMenu
+
+::
+:: 		Download Twitter/X With Chosen Format
+::
+:TWDLC
+cls
+echo.
+echo YT-DLP Twitter/X Downloader
+echo.
+SET /P URL=Enter URL: 
+echo.
+yt-dlp.exe --list-formats "%URL%"
+echo.
+SET /P F=Desired Output Format: 
+echo.
+IF not exist "%~dp0\Downloads" mkdir %~dp0\Downloads
+yt-dlp.exe -f %F% --embed-thumbnail --ffmpeg-location "%~dp0\ffmpeg\bin" --paths "%~dp0\Downloads" "%URL%"
+echo.
+echo Returning to Main Menu...
+timeout /t 3 /nobreak > nul
+GOTO TWMenu
+
+::
+:: 		Download Twitter/X Image
+::
+:TWDLI
+cls
+echo.
+echo YT-DLP Twitter/X Image Downloader
+echo.
+SET /P URL=Enter URL: 
+echo.
+GOTO TWMenu
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+::
 ::		Main Youtube Menu
 ::
 :YTMenu
@@ -122,7 +244,6 @@ SET /P URL=Enter URL:
 echo.
 IF not exist "%~dp0\Downloads" mkdir %~dp0\Downloads
 yt-dlp.exe --remux-video "mp4" --embed-thumbnail --ffmpeg-location "%~dp0\ffmpeg\bin" --paths "%~dp0\Downloads" "%URL%" 
-::--paths "%~dp0../Downloads"
 echo.
 echo Returning to Main Menu...
 timeout /t 5 /nobreak > nul
