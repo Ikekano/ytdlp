@@ -60,6 +60,8 @@ echo Returning to Main Menu...
 timeout /t 3 /nobreak > nul
 GOTO Menu
 
+::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::
+
 ::
 ::		Main Panopto Menu
 ::
@@ -69,11 +71,13 @@ echo.
 echo YT-DLP Panopto Downloader 
 echo.
 echo 1. Download Video in Specified Format
-echo 2. Exit 
+echo 2. Main Menu
+echo 3. Exit 
 echo.
 SET /P M=Select Option: 
 IF /I %M%==1 GOTO PTDL
-IF /I %M%==2 GOTO EOF
+IF /I %M%==2 GOTO Menu
+IF /I %M%==3 GOTO EOF
 
 echo.
 echo Error: Invalid Input
@@ -81,7 +85,6 @@ echo.
 echo [Press Any Key To Continue]
 pause > nul
 GOTO PTMenu
-
 
 ::
 :: 		Panopto Download
@@ -114,6 +117,8 @@ echo Returning to Main Menu...
 timeout /t 3 /nobreak > nul
 GOTO PTMenu
 
+::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::
+
 ::
 ::		Main Twitter/X Menu
 ::
@@ -125,13 +130,15 @@ echo.
 echo 1. Download Video (MP4)
 echo 2. Download Video in Specified Format
 echo 3. Download Image (WIP)
-echo 4. Exit 
+echo 4. Main Menu
+echo 5. Exit 
 echo.
 SET /P M=Select Option: 
 IF /I %M%==1 GOTO TWDL4
 IF /I %M%==2 GOTO TWDLC
 IF /I %M%==3 GOTO TWDLI
-IF /I %M%==4 GOTO EOF
+IF /I %M%==4 GOTO Menu
+IF /I %M%==5 GOTO EOF
 
 echo.
 echo Error: Invalid Input
@@ -190,19 +197,7 @@ SET /P URL=Enter URL:
 echo.
 GOTO TWMenu
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::	::
 
 ::
 ::		Main Youtube Menu
@@ -216,14 +211,16 @@ echo 1. Download Video (MP4)
 echo 2. Download Audio (MP3)
 echo 3. Download Video in Specified Format
 echo 4. Download Video Thumbnail
-echo 5. Exit 
+echo 5. Main Menu
+echo 6. Exit 
 echo.
 SET /P M=Select Option: 
 IF /I %M%==1 GOTO YTDL4
 IF /I %M%==2 GOTO YTDL3
 IF /I %M%==3 GOTO YTDLC
 IF /I %M%==4 GOTO YTDLT
-IF /I %M%==5 GOTO EOF
+IF /I %M%==5 GOTO Menu
+IF /I %M%==6 GOTO EOF
 
 echo.
 echo Error: Invalid Input
