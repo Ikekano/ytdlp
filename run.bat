@@ -95,6 +95,7 @@ echo.
 echo YT-DLP Panopto Downloader 
 echo.
 echo In order to download from Panopto the browser cookies need to be in a text file using this extension:
+echo https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc
 echo Only the cookies from Panopto are required!!! and place the txt file in the ytdlp folder. 
 echo (DO NOT UPLOAD THIS TEXT FILE ANYWHERE ON GIT OR THE INTERNET!!!)
 echo.
