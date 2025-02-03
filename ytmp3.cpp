@@ -10,7 +10,7 @@
 
 // Function prototypes
 LRESULT CALLBACK WindowProcedure(HWND, UINT, WPARAM, LPARAM);
-void RunDownloadCommand(const std::string& link, HWND hStatus);
+void RunDownloadCommand(const std::string& link, HWND hStatus, HWND hTextBox);
 void ReadConfig(std::string &audioQuality, std::string &downloadPath, bool &hidePowerShell);
 void SetStatusMessage(HWND hStatus, const std::string &message);
 
@@ -96,7 +96,7 @@ void ReadConfig(std::string &audioQuality, std::string &downloadPath, bool &hide
 }
 
 // Function to execute the PowerShell command with optional visibility
-void RunDownloadCommand(const std::string& link, HWND hStatus) {
+void RunDownloadCommand(const std::string& link, HWND hStatus, HWND hTextBox) {
     std::string command = "powershell -Command \"";
 
     // Handle download path
@@ -124,26 +124,35 @@ void RunDownloadCommand(const std::string& link, HWND hStatus) {
 
     if (CreateProcess(NULL, (LPSTR)command.c_str(), NULL, NULL, FALSE, creationFlags, NULL, NULL, &si, &pi)) {
         CloseHandle(pi.hThread);
+        
+        // Clear the input box since the download started successfully
+        SetWindowText(hTextBox, "");
+        
         SetStatusMessage(hStatus, "Downloading..."); // Default 5s timeout
 
-        // Wait for the process to finish
-        WaitForSingleObject(pi.hProcess, INFINITE);
+        // Ensure the process has finished execution before continuing
+        DWORD waitResult = WaitForSingleObject(pi.hProcess, INFINITE);
+        if (waitResult == WAIT_OBJECT_0) {
+            SetStatusMessage(hStatus, "Download Completed!");
+        } else {
+            SetStatusMessage(hStatus, "Error: Process did not exit normally.");
+        }
+        
         CloseHandle(pi.hProcess);
-
-        SetStatusMessage(hStatus, "Download Completed!");
     } else {
         SetStatusMessage(hStatus, "Error: Failed to start download.");
-    }
+	}
 }
 
-// Function to set status message and auto-clear after 5 seconds
+// Function to set status message
 void SetStatusMessage(HWND hStatus, const std::string &message) {
-    SetWindowText(hStatus, message.c_str());
+    static std::string lastMessage = "";
 
-    std::thread([hStatus]() {
-        Sleep(5000); // Wait 5 seconds
-        SetWindowText(hStatus, ""); // Clear message
-    }).detach();
+    // Only update if the message is different
+    if (message != lastMessage) {
+        SetWindowText(hStatus, message.c_str());
+        lastMessage = message;
+    }
 }
 
 // Window Procedure: Handles GUI events
@@ -179,7 +188,7 @@ LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
                 GetWindowText(hTextBox, link, sizeof(link));
 
                 if (strlen(link) > 0) {
-                    RunDownloadCommand(link, hStatus);
+                    RunDownloadCommand(link, hStatus, hTextBox);
                 } else {
                     SetStatusMessage(hStatus, "Please enter a valid YouTube link.");
                 }
