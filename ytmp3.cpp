@@ -102,9 +102,9 @@ void RunDownloadCommand(const std::string& link, HWND hStatus, HWND hTextBox) {
     // Handle download path
     if (configDownloadPath.empty()) {
         command += "IF (!(Test-Path 'Downloads')) { New-Item -ItemType Directory -Path 'Downloads' }; ";
-        command += "./yt-dlp.exe -x --audio-format 'mp3' --ffmpeg-location './ffmpeg/bin' --paths './Downloads' ";
+        command += "./yt-dlp.exe -x -o '%(title)s.%(ext)s' --audio-format 'mp3' --ffmpeg-location './ffmpeg/bin' --paths './Downloads' ";
     } else {
-        command += "./yt-dlp.exe -x --audio-format 'mp3' --ffmpeg-location './ffmpeg/bin' --paths '" + configDownloadPath + "' ";
+        command += "./yt-dlp.exe -x -o '%(title)s.%(ext)s' --audio-format 'mp3' --ffmpeg-location './ffmpeg/bin' --paths '" + configDownloadPath + "' ";
     }
 
     // Handle audio quality
